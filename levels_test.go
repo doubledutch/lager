@@ -46,3 +46,41 @@ func TestAllLevels(t *testing.T) {
 		}
 	}
 }
+
+func TestLevelsFromString(t *testing.T) {
+	verifyLevelsString(t, "E", []Level{Error}, []Level{Warn, Info, Trace, Debug})
+
+	verifyLevelsString(t, "EI", []Level{Error, Info}, []Level{Warn, Trace, Debug})
+
+	verifyLevelsString(t, "", []Level{}, []Level{Warn, Info, Trace, Debug, Error})
+
+	verifyLevelsString(t, "EWITD", []Level{Error, Warn, Info, Trace, Debug}, []Level{})
+
+}
+
+func verifyLevelsString(t *testing.T, sLevels string, contains, excludes []Level) {
+	levels := LevelsFromString(sLevels)
+
+	for _, contain := range contains {
+		if !levels.Contains(contain) {
+			t.Fatalf("levels contains %s", contain)
+		}
+	}
+
+	for _, exclude := range excludes {
+		if levels.Contains(exclude) {
+			t.Fatalf("levels includes %s", exclude)
+		}
+	}
+}
+
+func TestLevelsAll(t *testing.T) {
+	levels := new(Levels).All()
+
+	includes := []Level{Debug, Trace, Info, Warn, Error}
+	for _, include := range includes {
+		if !levels.Contains(include) {
+			t.Fatalf("levels doesn't contain %s", include)
+		}
+	}
+}
