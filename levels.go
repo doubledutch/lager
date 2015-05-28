@@ -35,6 +35,29 @@ type Levels struct {
 	bits Level
 }
 
+// LevelsFromString creates a levels object from a string
+// Levels are specified using a capital letter corresponding
+// to the first level of the desired level.
+func LevelsFromString(sLevels string) *Levels {
+	levels := new(Levels)
+	for _, sLevel := range sLevels {
+		switch sLevel {
+		case 'E':
+			levels.Set(Error)
+		case 'W':
+			levels.Set(Warn)
+		case 'I':
+			levels.Set(Info)
+		case 'T':
+			levels.Set(Trace)
+		case 'D':
+			levels.Set(Debug)
+		}
+	}
+
+	return levels
+}
+
 // Set sets a log level
 func (lvls *Levels) Set(level Level) *Levels {
 	lvls.bits |= level
@@ -45,4 +68,11 @@ func (lvls *Levels) Set(level Level) *Levels {
 // Contains checks to see if a log level is contained in a logger
 func (lvls *Levels) Contains(level Level) bool {
 	return lvls.bits&level == level
+}
+
+// All sets all levels
+func (lvls *Levels) All() *Levels {
+	lvls.Set(Trace | Debug | Info | Warn | Error)
+
+	return lvls
 }
