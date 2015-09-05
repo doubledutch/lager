@@ -13,7 +13,31 @@ limitations under the License.
 
 package lager
 
+import (
+	"errors"
+	"io"
+)
+
+// ErrNoDrinker is used when a drinker cannot be returned, primarly DrinkerFromString
+var ErrNoDrinker = errors.New("No Drinker")
+
 // Drinker will drink logs and output them
 type Drinker interface {
 	Drink(e interface{}) error
+}
+
+// NewDrinkerFunc creates a new drinker
+type NewDrinkerFunc func(output io.Writer) Drinker
+
+// DrinkerFromString provides a way to get a NewDrinkerFunc
+// using a string. Useful for deciding on a Drinker using the environment.
+func DrinkerFromString(str string) (NewDrinkerFunc, error) {
+	switch str {
+	case "JSON":
+		return NewJSONDrinker, nil
+	case "LOG":
+		return NewLogDrinker, nil
+	default:
+		return nil, ErrNoDrinker
+	}
 }

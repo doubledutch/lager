@@ -102,7 +102,7 @@ func (lgr *contextLager) Logf(lvl Level, message string, v ...interface{}) {
 	}
 
 	//add all standard values
-	allValues["@timestamp"] = time.Now().UTC().Format("Mon Jan 2 15:04:05 MST 2006")
+	allValues["@timestamp"] = time.Now().UTC().Format(time.RFC3339)
 	allValues["message"] = fmt.Sprintf(message, v...)
 	allValues["level"] = lvl.String()
 

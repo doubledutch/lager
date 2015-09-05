@@ -14,24 +14,24 @@ limitations under the License.
 package lager
 
 import (
+	"fmt"
 	"io"
-	"log"
 )
 
 // LogDrinker is a Drinker that uses log.Logger
 type LogDrinker struct {
-	logger *log.Logger
+	output io.Writer
 }
 
 // NewLogDrinker creates a new Log Drinker
 func NewLogDrinker(output io.Writer) Drinker {
 	return &LogDrinker{
-		logger: log.New(output, "", log.LstdFlags),
+		output: output,
 	}
 }
 
 // Drink drinks logs
 func (drkr *LogDrinker) Drink(v interface{}) error {
-	drkr.logger.Print(v)
+	fmt.Fprintf(drkr.output, "%v\n", v)
 	return nil
 }
