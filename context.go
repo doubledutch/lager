@@ -80,7 +80,7 @@ func NewContextLager(config *ContextConfig) ContextLager {
 	return lgr
 }
 
-// Set sets a key in the MapLager
+// Set sets a key to value in the lager map
 func (lgr *contextLager) Set(key, value string) ContextLager {
 	lgr.values[key] = value
 	return lgr
@@ -92,7 +92,7 @@ func (lgr *contextLager) Logf(lvl Level, message string, v ...interface{}) {
 		return
 	}
 
-	allValues := make(map[string]string)
+	allValues := make(map[string]interface{})
 	for k, v := range lgr.values {
 		allValues[k] = v
 	}
@@ -102,8 +102,8 @@ func (lgr *contextLager) Logf(lvl Level, message string, v ...interface{}) {
 	}
 
 	//add all standard values
-	allValues["@timestamp"] = time.Now().UTC().Format(time.RFC3339)
-	allValues["message"] = fmt.Sprintf(message, v...)
+	allValues["time"] = time.Now().UTC().Format(time.RFC3339)
+	allValues["msg"] = fmt.Sprintf(message, v...)
 	allValues["level"] = lvl.String()
 
 	//not sure what to do if the logger fails here
