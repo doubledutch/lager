@@ -32,7 +32,7 @@ func NewJSONDrinker(output io.Writer) Drinker {
 }
 
 // Drink drinks logs
-func (drkr *JSONDrinker) Drink(v interface{}) error {
+func (drkr *JSONDrinker) Drink(v map[string]interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return err

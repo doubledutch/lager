@@ -23,7 +23,7 @@ import (
 func testLager(level Level) error {
 	buf := new(bytes.Buffer)
 
-	lgr := NewBasicLager(&BasicConfig{
+	lgr := NewContextLager(&ContextConfig{
 		Levels:  new(Levels).Set(level),
 		Drinker: NewLogDrinker(buf),
 	})

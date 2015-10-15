@@ -23,7 +23,7 @@ var ErrNoDrinker = errors.New("No Drinker")
 
 // Drinker will drink logs and output them
 type Drinker interface {
-	Drink(e interface{}) error
+	Drink(v map[string]interface{}) error
 }
 
 // NewDrinkerFunc creates a new drinker

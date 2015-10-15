@@ -51,7 +51,7 @@ func TestJSONLogf(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if logMap["message"] != expected {
+	if logMap["msg"] != expected {
 		t.Fatalf("actual: '%s' to contain expected: '%s'", logMap["message"], expected)
 	}
 
