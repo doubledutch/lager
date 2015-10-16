@@ -47,7 +47,6 @@ func DefaultContextConfig() *ContextConfig {
 type contextLager struct {
 	Lager
 
-	levels  *Levels
 	drinker Drinker
 
 	values      map[string]string
@@ -62,6 +61,10 @@ func NewContextLager(config *ContextConfig) ContextLager {
 		config = DefaultContextConfig()
 	}
 
+	if config.Values == nil {
+		config.Values = make(map[string]string)
+	}
+
 	//copy all keys and values into allValues
 	for k, v := range config.Values {
 		if _, ok := values[k]; !ok {
@@ -69,15 +72,14 @@ func NewContextLager(config *ContextConfig) ContextLager {
 		}
 	}
 
-	lgr := &contextLager{
-		levels:      config.Levels,
+	logger := &contextLager{
 		drinker:     config.Drinker,
 		values:      values,
 		stacktraces: config.Stacktraces,
 	}
 
-	lgr.Lager = newLager(lgr)
-	return lgr
+	logger.Lager = newLager(logger, config.Levels)
+	return logger
 }
 
 // Set sets a key to value in the lager map
@@ -88,10 +90,6 @@ func (lgr *contextLager) Set(key, value string) ContextLager {
 
 //Logf writes a log to the standard output
 func (lgr *contextLager) Logf(lvl Level, message string, v ...interface{}) {
-	if !lgr.levels.Contains(lvl) {
-		return
-	}
-
 	allValues := make(map[string]interface{})
 	for k, v := range lgr.values {
 		allValues[k] = v
@@ -114,7 +112,7 @@ func (lgr *contextLager) Logf(lvl Level, message string, v ...interface{}) {
 // The child inherits all the parent values.
 func (lgr *contextLager) Child() ContextLager {
 	return NewContextLager(&ContextConfig{
-		Levels:  lgr.levels,
+		Levels:  lgr.Levels(),
 		Drinker: lgr.drinker,
 		Values:  lgr.values,
 	})

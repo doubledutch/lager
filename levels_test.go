@@ -84,3 +84,17 @@ func TestLevelsAll(t *testing.T) {
 		}
 	}
 }
+
+func TestLevelsUnset(t *testing.T) {
+	levels := new(Levels).All()
+
+	if !levels.Contains(Debug) {
+		t.Fatal("expected levels to contain debug")
+	}
+
+	levels.Unset(Debug)
+
+	if levels.Contains(Debug) {
+		t.Fatal("expected levels to not contain debug")
+	}
+}

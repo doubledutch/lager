@@ -48,11 +48,11 @@ func TestJSONLogf(t *testing.T) {
 
 	var logMap map[string]string
 	if err = json.Unmarshal(actual, &logMap); err != nil {
-		t.Fatal(err)
+		t.Fatalf("Error unmarshalling log: %s", err)
 	}
 
 	if logMap["msg"] != expected {
-		t.Fatalf("actual: '%s' to contain expected: '%s'", logMap["message"], expected)
+		t.Fatalf("expected '%s', got '%s'", expected, logMap["msg"])
 	}
 
 	if logMap["hello"] != "world" {
@@ -154,7 +154,7 @@ func TestContextChild(t *testing.T) {
 
 	var logMap map[string]string
 	if err = json.Unmarshal(actual, &logMap); err != nil {
-		t.Fatal(err)
+		t.Fatalf("Error unmarshalling json: %s", err)
 	}
 
 	for k, v := range keys {

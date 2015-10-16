@@ -85,3 +85,18 @@ func TestLagerError(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestLagerLevels(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	lvls := new(Levels).Set(Error | Info)
+
+	lgr := NewContextLager(&ContextConfig{
+		Levels:  lvls,
+		Drinker: NewLogDrinker(buf),
+	})
+
+	if lvls != lgr.Levels() {
+		t.Fatalf("expected levels to match")
+	}
+}

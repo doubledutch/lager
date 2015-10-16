@@ -63,7 +63,6 @@ func needsQuoting(text string) bool {
 }
 
 func appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
-
 	b.WriteString(key)
 	b.WriteByte('=')
 

@@ -36,7 +36,6 @@ func DefaultLogConfig() *LogConfig {
 // LogLager implements Logger using *log.Logger
 type LogLager struct {
 	Lager
-	levels *Levels
 	logger *log.Logger
 }
 
@@ -47,11 +46,10 @@ func NewLogLager(config *LogConfig) Lager {
 	}
 
 	logger := &LogLager{
-		levels: config.Levels,
 		logger: log.New(config.Output, "", log.LstdFlags),
 	}
 
-	logger.Lager = newLager(logger)
+	logger.Lager = newLager(logger, config.Levels)
 
 	return logger
 }
@@ -59,9 +57,5 @@ func NewLogLager(config *LogConfig) Lager {
 // Logf will log the given msg formatted with v if min is greater than or equal
 // to the log level of LogLager
 func (lgr *LogLager) Logf(level Level, msg string, v ...interface{}) {
-	if !lgr.levels.Contains(level) {
-		return
-	}
-
 	lgr.logger.Printf(msg, v...)
 }
