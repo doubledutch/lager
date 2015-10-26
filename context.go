@@ -127,8 +127,10 @@ func (lgr *contextLager) Logf(lvl Level, message string, v ...interface{}) {
 // The child inherits all the parent values.
 func (lgr *contextLager) Child() ContextLager {
 	return NewContextLager(&ContextConfig{
-		Levels:  lgr.levels,
-		Drinker: lgr.drinker,
-		Values:  lgr.values,
+		Levels:      lgr.levels,
+		Drinker:     lgr.drinker,
+		Values:      lgr.values,
+		Stacktraces: lgr.stacktraces,
+		FileType:    lgr.fileType,
 	})
 }

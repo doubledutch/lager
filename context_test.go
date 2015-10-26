@@ -295,6 +295,34 @@ func TestContextJSONFullFile(t *testing.T) {
 	}
 }
 
+func TestContextJSONChildFile(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:      new(Levels).Set(Trace),
+		Drinker:     NewJSONDrinker(buf),
+		FileType:    FullFile,
+		Stacktraces: true,
+	})
+
+	child := logger.Child()
+	child.Tracef("this is a %s", "test")
+
+	actual, err := ioutil.ReadAll(buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var logMap map[string]string
+	if err = json.Unmarshal(actual, &logMap); err != nil {
+		t.Fatal(err)
+	}
+
+	if logMap["file"] == "" {
+		t.Fatalf("expected file to be logged")
+	}
+}
+
 func TestContextLager(t *testing.T) {
 	NewContextLager(nil)
 }
