@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -28,7 +30,7 @@ func TestDefaultContextConfig(t *testing.T) {
 	}
 }
 
-func TestJSONLogf(t *testing.T) {
+func TestContextJSONLogf(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	logger := NewContextLager(&ContextConfig{
@@ -60,7 +62,7 @@ func TestJSONLogf(t *testing.T) {
 	}
 }
 
-func TestJSONLogfErrorStacktrace(t *testing.T) {
+func TestContextJSONLogfErrorStacktrace(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	logger := NewContextLager(&ContextConfig{
@@ -103,7 +105,7 @@ func TestJSONLogfErrorStacktrace(t *testing.T) {
 	}
 }
 
-func TestJSONNotLogf(t *testing.T) {
+func TestContextJSONNotLogf(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	logger := NewContextLager(&ContextConfig{
@@ -161,6 +163,163 @@ func TestContextChild(t *testing.T) {
 		if logMap[k] != v {
 			t.Fatalf("expected key '%s' == '%s', got '%s'", k, v, logMap[k])
 		}
+	}
+}
+
+func TestContextJSONNoFile(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:  new(Levels).Set(Trace),
+		Drinker: NewJSONDrinker(buf),
+	})
+
+	logger.Tracef("this is a %s", "test")
+
+	actual, err := ioutil.ReadAll(buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var logMap map[string]string
+	if err = json.Unmarshal(actual, &logMap); err != nil {
+		t.Fatal(err)
+	}
+
+	if logMap["file"] != "" {
+		t.Fatalf("expected no file to be logged")
+	}
+}
+
+func TestContextJSONShortFile(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:   new(Levels).Set(Trace),
+		Drinker:  NewJSONDrinker(buf),
+		FileType: ShortFile,
+	})
+
+	logger.Tracef("this is a %s", "test")
+
+	actual, err := ioutil.ReadAll(buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var logMap map[string]string
+	if err = json.Unmarshal(actual, &logMap); err != nil {
+		t.Fatal(err)
+	}
+
+	if logMap["file"] == "" {
+		t.Fatalf("expected file to be logged")
+	}
+
+	parts := strings.Split(logMap["file"], ":")
+	if parts[0] != "context_test.go" {
+		t.Fatalf("expected %s, actual %s", "context_test.go", parts[0])
+	}
+}
+
+func TestContextJSONPackageFile(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:   new(Levels).Set(Trace),
+		Drinker:  NewJSONDrinker(buf),
+		FileType: PackageFile,
+	})
+
+	logger.Tracef("this is a %s", "test")
+
+	actual, err := ioutil.ReadAll(buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var logMap map[string]string
+	if err = json.Unmarshal(actual, &logMap); err != nil {
+		t.Fatal(err)
+	}
+
+	if logMap["file"] == "" {
+		t.Fatalf("expected file to be logged")
+	}
+
+	parts := strings.Split(logMap["file"], string(os.PathSeparator))
+	if len(parts) != 4 {
+		t.Fatalf("Expected 4 parts in the path, actual %d", len(parts))
+	}
+	expected := []string{"github.com", "doubledutch", "lager"}
+	for i, expect := range expected {
+		if parts[i] != expect {
+			t.Fatalf("expected %s, actual %s", expect, parts[i])
+		}
+	}
+
+	parts = strings.Split(parts[3], ":")
+	if parts[0] != "context_test.go" {
+		t.Fatalf("expected %s, actual %s", "context_test.go", parts[0])
+	}
+}
+
+func TestContextJSONFullFile(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:   new(Levels).Set(Trace),
+		Drinker:  NewJSONDrinker(buf),
+		FileType: FullFile,
+	})
+
+	logger.Tracef("this is a %s", "test")
+
+	actual, err := ioutil.ReadAll(buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var logMap map[string]string
+	if err = json.Unmarshal(actual, &logMap); err != nil {
+		t.Fatal(err)
+	}
+
+	if logMap["file"] == "" {
+		t.Fatalf("expected file to be logged")
+	}
+
+	parts := strings.Split(logMap["file"], string(os.PathSeparator))
+	if len(parts) <= 4 {
+		t.Fatalf("Expected more than 4 parts to the path, actual %d", len(parts))
+	}
+}
+
+func TestContextJSONChildFile(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:      new(Levels).Set(Trace),
+		Drinker:     NewJSONDrinker(buf),
+		FileType:    FullFile,
+		Stacktraces: true,
+	})
+
+	child := logger.Child()
+	child.Tracef("this is a %s", "test")
+
+	actual, err := ioutil.ReadAll(buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var logMap map[string]string
+	if err = json.Unmarshal(actual, &logMap); err != nil {
+		t.Fatal(err)
+	}
+
+	if logMap["file"] == "" {
+		t.Fatalf("expected file to be logged")
 	}
 }
 

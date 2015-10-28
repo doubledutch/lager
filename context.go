@@ -28,19 +28,20 @@ type ContextLager interface {
 }
 
 // ContextConfig is defines the configuration for ContextLager.
-// ContextConfig wraps Config.
 type ContextConfig struct {
 	Levels      *Levels
 	Drinker     Drinker
 	Values      map[string]string
 	Stacktraces bool
+	FileType    FileType
 }
 
 // DefaultContextConfig creates a default ContextConfig
 func DefaultContextConfig() *ContextConfig {
 	return &ContextConfig{
-		Levels:  new(Levels).Set(Error),
-		Drinker: NewJSONDrinker(os.Stdout),
+		Levels:   new(Levels).Set(Error),
+		Drinker:  NewJSONDrinker(os.Stdout),
+		FileType: PackageFile,
 	}
 }
 
@@ -52,6 +53,7 @@ type contextLager struct {
 
 	values      map[string]string
 	stacktraces bool
+	fileType    FileType
 }
 
 // NewContextLager creates a JSONLager
@@ -74,6 +76,7 @@ func NewContextLager(config *ContextConfig) ContextLager {
 		drinker:     config.Drinker,
 		values:      values,
 		stacktraces: config.Stacktraces,
+		fileType:    config.FileType,
 	}
 
 	lgr.Lager = newLager(lgr)
@@ -83,6 +86,11 @@ func NewContextLager(config *ContextConfig) ContextLager {
 // Set sets a key to value in the lager map
 func (lgr *contextLager) Set(key, value string) ContextLager {
 	lgr.values[key] = value
+	return lgr
+}
+
+func (lgr *contextLager) Unset(key string) ContextLager {
+	delete(lgr.values, key)
 	return lgr
 }
 
@@ -101,6 +109,11 @@ func (lgr *contextLager) Logf(lvl Level, message string, v ...interface{}) {
 		allValues["stacktrace"] = string(debug.Stack())
 	}
 
+	file := lgr.fileType.Caller(4)
+	if file != "" {
+		allValues["file"] = file
+	}
+
 	//add all standard values
 	allValues["time"] = time.Now().UTC().Format(time.RFC3339)
 	allValues["msg"] = fmt.Sprintf(message, v...)
@@ -114,8 +127,10 @@ func (lgr *contextLager) Logf(lvl Level, message string, v ...interface{}) {
 // The child inherits all the parent values.
 func (lgr *contextLager) Child() ContextLager {
 	return NewContextLager(&ContextConfig{
-		Levels:  lgr.levels,
-		Drinker: lgr.drinker,
-		Values:  lgr.values,
+		Levels:      lgr.levels,
+		Drinker:     lgr.drinker,
+		Values:      lgr.values,
+		Stacktraces: lgr.stacktraces,
+		FileType:    lgr.fileType,
 	})
 }
