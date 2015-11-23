@@ -15,44 +15,56 @@ package lager
 
 var defaultLager = NewContextLager(nil)
 
-// SetLevels sets the levels of the package lager
+// SetLevels sets the levels of the package lager.
 func SetLevels(levels *Levels) ContextLager {
 	defaultLager.SetLevels(levels)
 	return defaultLager
 }
 
-// SetDrinker sets the drinker of the package lager
+// SetDrinker sets the drinker of the package lager.
 func SetDrinker(drinker Drinker) ContextLager {
 	defaultLager.(*contextLager).drinker = drinker
 	return defaultLager
 }
 
-// Tracef logs with level Trace using the package lager
+// SetStacktraces sets whether stacktraces are captured on error.
+func SetStacktraces(on bool) ContextLager {
+	defaultLager.(*contextLager).stacktraces = on
+	return defaultLager
+}
+
+// SetFileType sets the fileType that is used for logs.
+func SetFileType(fileType FileType) ContextLager {
+	defaultLager.(*contextLager).fileType = fileType
+	return defaultLager
+}
+
+// Tracef logs with level Trace using the package lager.
 func Tracef(msg string, v ...interface{}) {
 	defaultLager.Tracef(msg, v...)
 }
 
-// Debugf logs with level Debug using the package lager
+// Debugf logs with level Debug using the package lager.
 func Debugf(msg string, v ...interface{}) {
 	defaultLager.Debugf(msg, v...)
 }
 
-// Infof logs with level Info using the package lager
+// Infof logs with level Info using the package lager.
 func Infof(msg string, v ...interface{}) {
 	defaultLager.Infof(msg, v...)
 }
 
-// Warnf logs with level Warn using the package lager
+// Warnf logs with level Warn using the package lager.
 func Warnf(msg string, v ...interface{}) {
 	defaultLager.Warnf(msg, v...)
 }
 
-// Errorf logs with level Error using the package lager
+// Errorf logs with level Error using the package lager.
 func Errorf(msg string, v ...interface{}) {
 	defaultLager.Errorf(msg, v...)
 }
 
-// Set sets a key to value in the lager map  using the package lager
+// Set sets a key to value in the lager map  using the package lager.
 func Set(key, value string) ContextLager {
 	return defaultLager.Set(key, value)
 }
