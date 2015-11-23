@@ -21,44 +21,71 @@ type Lager interface {
 	Infof(msg string, v ...interface{})
 	Warnf(msg string, v ...interface{})
 	Errorf(msg string, v ...interface{})
+	SetLevels(levels *Levels)
+	Levels() *Levels
 }
 
-// PaleLager represents a logger
+// palgeLager represents a logger
 type paleLager interface {
 	Logf(log Level, msg string, v ...interface{})
+	SetLevels(levels *Levels)
+	Levels() *Levels
 }
 
 type lager struct {
 	pale paleLager
+
+	levels *Levels
 }
 
-func newLager(lgr paleLager) Lager {
+func newLager(lgr paleLager, levels *Levels) Lager {
 	return &lager{
-		pale: lgr,
+		pale:   lgr,
+		levels: levels,
 	}
 }
 
 // Tracef logs with level Trace
 func (lgr *lager) Tracef(msg string, v ...interface{}) {
-	lgr.pale.Logf(Trace, msg, v...)
+	lgr.logf(Trace, msg, v...)
 }
 
 // Debugf logs with level Debug
 func (lgr *lager) Debugf(msg string, v ...interface{}) {
-	lgr.pale.Logf(Debug, msg, v...)
+	lgr.logf(Debug, msg, v...)
 }
 
 // Infof logs with level Info
 func (lgr *lager) Infof(msg string, v ...interface{}) {
-	lgr.pale.Logf(Info, msg, v...)
+	lgr.logf(Info, msg, v...)
 }
 
 // Warnf logs with level Warn
 func (lgr *lager) Warnf(msg string, v ...interface{}) {
-	lgr.pale.Logf(Warn, msg, v...)
+	lgr.logf(Warn, msg, v...)
 }
 
 // Errorf logs with level Error
 func (lgr *lager) Errorf(msg string, v ...interface{}) {
-	lgr.pale.Logf(Error, msg, v...)
+	lgr.logf(Error, msg, v...)
+}
+
+func (lgr *lager) logf(lvl Level, msg string, v ...interface{}) {
+	if lgr.levels == nil {
+		return
+	}
+
+	if !lgr.levels.Contains(lvl) {
+		return
+	}
+
+	lgr.pale.Logf(lvl, msg, v...)
+}
+
+func (lgr *lager) SetLevels(levels *Levels) {
+	lgr.pale.SetLevels(levels)
+}
+
+func (lgr *lager) Levels() *Levels {
+	return lgr.levels
 }

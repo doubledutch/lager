@@ -13,6 +13,8 @@ limitations under the License.
 
 package lager
 
+import "sync"
+
 // Level represents a logging level
 type Level uint
 
@@ -33,6 +35,7 @@ const (
 // Levels contains the log levels a logger will write to a Drinker
 type Levels struct {
 	bits Level
+	lock sync.RWMutex
 }
 
 // LevelsFromString creates a levels object from a string
@@ -60,19 +63,41 @@ func LevelsFromString(sLevels string) *Levels {
 
 // Set sets a log level
 func (lvls *Levels) Set(level Level) *Levels {
+	lvls.lock.Lock()
 	lvls.bits |= level
+	lvls.lock.Unlock()
+
+	return lvls
+}
+
+// Unset removes a log level
+func (lvls *Levels) Unset(level Level) *Levels {
+	lvls.lock.Lock()
+	lvls.bits &= ^level
+	lvls.lock.Unlock()
 
 	return lvls
 }
 
 // Contains checks to see if a log level is contained in a logger
 func (lvls *Levels) Contains(level Level) bool {
+	lvls.lock.RLock()
+	defer lvls.lock.RUnlock()
 	return lvls.bits&level == level
 }
 
 // All sets all levels
 func (lvls *Levels) All() *Levels {
 	lvls.Set(Trace | Debug | Info | Warn | Error)
+
+	return lvls
+}
+
+// Replace changes it's value to match level
+func (lvls *Levels) Replace(level *Levels) *Levels {
+	lvls.lock.Lock()
+	lvls.bits = level.bits
+	lvls.lock.Unlock()
 
 	return lvls
 }
