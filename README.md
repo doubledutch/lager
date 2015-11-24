@@ -1,4 +1,4 @@
-lager [![Build Status](https://travis-ci.org/doubledutch/lager.svg?branch=master)](https://travis-ci.org/doubledutch/lager) [![Coverage Status](https://coveralls.io/repos/doubledutch/lager/badge.svg?branch=coveralls&service=github)](https://coveralls.io/github/doubledutch/lager?branch=coveralls)
+lager [![Build Status](https://travis-ci.org/doubledutch/lager.svg?branch=master)](https://travis-ci.org/doubledutch/lager) [![Coverage Status](https://coveralls.io/repos/doubledutch/lager/badge.svg?branch=master&service=github)](https://coveralls.io/github/doubledutch/lager?branch=master)
 =====
 
 lager is an opinionated logging library :beer:
