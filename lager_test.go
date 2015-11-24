@@ -100,3 +100,8 @@ func TestLagerLevels(t *testing.T) {
 		t.Fatalf("expected levels to match")
 	}
 }
+
+func TestSetLevels(t *testing.T) {
+	lgr := NewLogLager(nil)
+	lgr.SetLevels(LevelsFromString("IE"))
+}

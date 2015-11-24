@@ -83,7 +83,7 @@ func (lgr *lager) logf(lvl Level, msg string, v ...interface{}) {
 }
 
 func (lgr *lager) SetLevels(levels *Levels) {
-	lgr.pale.SetLevels(levels)
+	lgr.levels.Replace(levels)
 }
 
 func (lgr *lager) Levels() *Levels {
