@@ -23,6 +23,8 @@ import (
 // ContextLager is a Lager that adds context to logs with key value pairs
 type ContextLager interface {
 	Lager
+	With(map[string]string) ContextLager
+	WithError(error) ContextLager
 	Set(key, value string) ContextLager
 	Child() ContextLager
 }
@@ -83,6 +85,28 @@ func NewContextLager(config *ContextConfig) ContextLager {
 
 	logger.Lager = newLager(logger, config.Levels)
 	return logger
+}
+
+func (lgr *contextLager) With(fields map[string]string) ContextLager {
+	if fields == nil {
+		return lgr
+	}
+
+	clgr := lgr.Child()
+	for key, value := range fields {
+		clgr.Set(key, value)
+	}
+	return clgr
+}
+
+func (lgr *contextLager) WithError(err error) ContextLager {
+	if err == nil {
+		return lgr
+	}
+
+	clgr := lgr.Child()
+	clgr.Set("error", err.Error())
+	return clgr
 }
 
 // Set sets a key to value in the lager map
