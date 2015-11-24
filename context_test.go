@@ -297,6 +297,7 @@ func TestContextJSONFullFile(t *testing.T) {
 
 func TestContextJSONChildFile(t *testing.T) {
 	buf := new(bytes.Buffer)
+	dec := json.NewDecoder(buf)
 
 	logger := NewContextLager(&ContextConfig{
 		Levels:      new(Levels).Set(Trace),
@@ -308,18 +309,126 @@ func TestContextJSONChildFile(t *testing.T) {
 	child := logger.Child()
 	child.Tracef("this is a %s", "test")
 
-	actual, err := ioutil.ReadAll(buf)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	var logMap map[string]string
-	if err = json.Unmarshal(actual, &logMap); err != nil {
+	if err := dec.Decode(&logMap); err != nil {
 		t.Fatal(err)
 	}
 
 	if logMap["file"] == "" {
 		t.Fatalf("expected file to be logged")
+	}
+}
+
+func TestContextWith(t *testing.T) {
+	buf := new(bytes.Buffer)
+	dec := json.NewDecoder(buf)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:  new(Levels).Set(Trace),
+		Drinker: NewJSONDrinker(buf),
+	})
+
+	logger.Set("global", "peace")
+	logger.Tracef("hello world")
+
+	var first map[string]string
+	err := dec.Decode(&first)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if first["global"] != "peace" {
+		t.Fatalf("expected global to be peace, got %s", first["global"])
+	}
+
+	unexpectedKey := func(key string, m map[string]string) {
+		if _, ok := m[key]; ok {
+			t.Fatalf("unexpected key %s", key)
+		}
+	}
+
+	unexpectedKey("a", first)
+	unexpectedKey("b", first)
+
+	logger.With(map[string]string{
+		"a": "one",
+		"b": "two",
+	}).Tracef("hello again, world")
+
+	var second map[string]string
+	err = dec.Decode(&second)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if second["global"] != "peace" {
+		t.Fatalf("expected global to be peace, got %s", second["global"])
+	}
+
+	if second["a"] != "one" {
+		t.Fatalf("expected a to be one, got %s", second["a"])
+	}
+
+	if second["b"] != "two" {
+		t.Fatalf("expected b to be two, got %s", second["b"])
+	}
+
+	logger.Tracef("good night, world")
+	var third map[string]string
+	err = dec.Decode(&third)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if third["global"] != "peace" {
+		t.Fatalf("expected global to be peace, got %s", third["global"])
+	}
+
+	unexpectedKey("a", third)
+	unexpectedKey("b", third)
+}
+
+func TestContextWithErr(t *testing.T) {
+	buf := new(bytes.Buffer)
+	dec := json.NewDecoder(buf)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:  new(Levels).Set(Trace),
+		Drinker: NewJSONDrinker(buf),
+	})
+
+	err := errors.New("failure")
+	logger.WithError(err).Tracef("hello world")
+
+	var actual map[string]string
+	if err := dec.Decode(&actual); err != nil {
+		t.Fatal(err)
+	}
+
+	if actual["error"] != err.Error() {
+		t.Fatalf("expected error to be failure, got %s", actual["error"])
+	}
+}
+
+func TestContextWithErrNil(t *testing.T) {
+	buf := new(bytes.Buffer)
+	dec := json.NewDecoder(buf)
+
+	logger := NewContextLager(&ContextConfig{
+		Levels:  new(Levels).Set(Trace),
+		Drinker: NewJSONDrinker(buf),
+	})
+
+	var err error
+	logger.WithError(err).Tracef("hello world")
+
+	var actual map[string]string
+	if err := dec.Decode(&actual); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, ok := actual["error"]; ok {
+		t.Fatalf("expected no error")
 	}
 }
 

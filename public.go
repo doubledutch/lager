@@ -64,6 +64,16 @@ func Errorf(msg string, v ...interface{}) {
 	defaultLager.Errorf(msg, v...)
 }
 
+// With adds key values to the returned lager using the package lager.
+func With(fields map[string]string) ContextLager {
+	return defaultLager.With(fields)
+}
+
+// WithError adds an error key value to the returned lager if non nil, using the package lager.
+func WithError(err error) ContextLager {
+	return defaultLager.WithError(err)
+}
+
 // Set sets a key to value in the lager map  using the package lager.
 func Set(key, value string) ContextLager {
 	return defaultLager.Set(key, value)
